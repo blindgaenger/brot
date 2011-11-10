@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'bundler/setup'
+require 'brot'
+
+slop = Slop.parse :help => true do
+  on :s, :server, "Server (default: localhost:3000)", :optional => true, :default => "localhost:3000"
+  on :u, :username, "Username (default: admin)", :optional => true, :default => "admin"
+  on :p, :password, "Password (default: admin)", :optional => true, :default => "admin"
+end
+
+options = slop.to_hash
+options.delete :help
+Brot.start options
