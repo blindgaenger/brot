@@ -1,5 +1,6 @@
 require 'brot/version'
 require 'brot/bot'
+require 'brot/request'
 require 'protolink'
 require 'slop'
 require 'yaml'
@@ -11,13 +12,12 @@ module Brot
     protonet = Protolink::Protonet.open(config['server'], config['username'], config['password'], config['proxy'])
     puts "connected to protonet"
 
-    bot_configs = config['bots']
-    puts "found #{bot_configs.size} bots"
+    plugins = config['plugins']
+    # TODO: check plugins to exist, resp. load them
+    puts "found #{plugins.size} plugins"
 
-    bot_configs.each do |bot_config|
-      bot = Bot.new(protonet, bot_config)
-      bot.listen # TODO: don't stop here
-    end
+    bot = Bot.new(protonet, plugins)
+    bot.listen
   end
 
 end

@@ -3,24 +3,52 @@ module Brot
   class Bot
     TRIGGER_MESSAGE = 'meep.receive'
 
-    def initialize(protonet, config)
+    def initialize(protonet, plugins)
       @protonet = protonet
-      @name = config['name']
       @user = @protonet.current_user
-      @channel = @protonet.find_channel(config['channel_id'])
+      @salutation = /^\s*@#{@protonet.current_user.login}\b/i
+      @plugins = plugins.map{|name| name.to_sym}
     end
 
     def listen
-      puts "#{@name} starts to listen on channel #{@channel.name} ..."
+      puts "bot starts to listen ..."
       @protonet.socket do |json|
         next if json['user_id'] == @user.id
-        next unless json['channel_id'] == @channel.id
         next unless json['trigger'] == TRIGGER_MESSAGE
+        next unless json['message'] =~ @salutation
 
-        author = json['author']
-        message = json['message']
+        request = Request.new(@protonet, json)
+        @plugins.each do |plugin|
+          if self.respond_to? plugin
+            self.send(plugin, request)
+          end
+        end
+      end
+    end
 
-        @channel.speak("#{author} said: #{message}")
+    # TODO: move plugins to files
+
+    def ping(request)
+      if request.message =~ /PING$/i
+        request.answer 'PONG'
+      end
+    end
+
+    def echo(request)
+      if md = request.message.match(/ECHO (.*)$/i)
+        request.answer md[1]
+      end
+    end
+
+    def time(request)
+      if request.message =~ /(TIME|ZEIT)$/i
+        request.answer "Server time is: #{Time.now}"
+      end
+    end
+
+    def hello(request)
+      if request.message =~ /HELLO$/i
+        request.answer "Hi, #{request.author}!"
       end
     end
 
