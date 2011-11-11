@@ -1,0 +1,8 @@
+---
+server: localhost:3000
+username: admin
+password: admin
+proxy:
+bots:
+- name: DaBot
+  channel_id: 1

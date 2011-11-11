@@ -5,11 +5,22 @@ require 'bundler/setup'
 require 'brot'
 
 slop = Slop.parse :help => true do
-  on :s, :server, "Server (default: localhost:3000)", :optional => true, :default => "localhost:3000"
-  on :u, :username, "Username (default: admin)", :optional => true, :default => "admin"
-  on :p, :password, "Password (default: admin)", :optional => true, :default => "admin"
+  on :c, :config, 'Config file to use (default: config.yml)', :optional => true, :default => "config.yml"
+  on :v, :version, 'Print the version' do
+    puts "brot #{Brot::VERSION}"
+    exit
+  end
 end
-
 options = slop.to_hash
 options.delete :help
-Brot.start options
+
+config_file = options[:config]
+unless File.exist?(config_file)
+  warn "config file does not exist: #{config_file}"
+  exit(-1)
+end
+
+config = YAML.load(File.read(config_file))
+puts "use config file: #{config_file}"
+
+Brot.start config
